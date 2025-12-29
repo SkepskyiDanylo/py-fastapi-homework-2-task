@@ -57,7 +57,11 @@ async def get_movie_by_id_relations(db: AsyncSession, movie_id: int) -> database
 
 
 async def get_movie_by_name_and_date(db: AsyncSession, name: str, date: datetime.date) -> database.MovieModel:
-    query = select(database.MovieModel).where((database.MovieModel.name.ilike(name)) & (database.MovieModel.date == date))
+    query = select(
+        database.MovieModel
+    ).where(
+        (database.MovieModel.name.ilike(name)) & (database.MovieModel.date == date)
+    )
     data = await db.execute(query)
     return data.scalar_one_or_none()
 
