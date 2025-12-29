@@ -1,18 +1,25 @@
 from math import ceil
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import schemas
-from crud import get_all_movies, get_movies_count, get_movie_by_name, create_movie_model, get_movie_by_id_relations, \
-    delete_movie_by_id, update_movie_model
+from crud import (
+    get_all_movies,
+    get_movies_count,
+    get_movie_by_name_and_date,
+    create_movie_model,
+    get_movie_by_id_relations,
+    delete_movie_by_id,
+    update_movie_model
+)
 from database import get_db
 
 router = APIRouter()
 
 
 @router.get("/movies/", response_model=schemas.MovieListResponseSchema)
-async def get_movies(request: Request, db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1),
+async def get_movies(db: AsyncSession = Depends(get_db), page: int = Query(1, ge=1),
                      per_page: int = Query(10, ge=1, le=20)):
     movies = await get_all_movies(db=db, start=(page - 1) * per_page, count=per_page)
     total_items = await get_movies_count(db)
@@ -44,7 +51,8 @@ async def get_movies(request: Request, db: AsyncSession = Depends(get_db), page:
 @router.post("/movies/", response_model=schemas.MovieDetailSchema, status_code=201)
 async def create_movie(movie: schemas.MovieCreateSchema, db: AsyncSession = Depends(get_db)):
     name = movie.name
-    exists = await get_movie_by_name(db=db, name=name)
+    date = movie.date
+    exists = await get_movie_by_name_and_date(db=db, name=name, date=date)
     if exists:
         raise HTTPException(
             status_code=409,
@@ -63,8 +71,8 @@ async def get_movie(movie_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.patch("/movies/{movie_id}/")
 async def edit_movie(movie_id: int, movie: schemas.MovieEditSchema, db: AsyncSession = Depends(get_db)):
-    movie = await update_movie_model(db=db, movie_id=movie_id, movie=movie)
-    if not movie:
+    is_updated = await update_movie_model(db=db, movie_id=movie_id, movie=movie)
+    if not is_updated:
         raise HTTPException(status_code=404, detail="Movie with the given ID was not found.")
     return {"detail": "Movie updated successfully."}
 

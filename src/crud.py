@@ -1,3 +1,4 @@
+import datetime
 
 from sqlalchemy import Sequence
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -55,13 +56,13 @@ async def get_movie_by_id_relations(db: AsyncSession, movie_id: int) -> database
     return data.scalar_one_or_none()
 
 
-async def get_movie_by_name(db: AsyncSession, name: str) -> database.MovieModel:
-    query = select(database.MovieModel).where(database.MovieModel.name.ilike(name))
+async def get_movie_by_name_and_date(db: AsyncSession, name: str, date: datetime.date) -> database.MovieModel:
+    query = select(database.MovieModel).where((database.MovieModel.name.ilike(name)) & (database.MovieModel.date == date))
     data = await db.execute(query)
     return data.scalar_one_or_none()
 
 
-async def create_movie_model(db: AsyncSession, movie_data: schemas.MovieDetailSchema) -> database.MovieModel:
+async def create_movie_model(db: AsyncSession, movie_data: schemas.MovieCreateSchema) -> database.MovieModel:
     movie_data = movie_data.model_dump()
     country = await get_or_create(db=db, model=database.CountryModel, code=movie_data.pop("country"))
     genres = [await get_or_create(db=db, model=database.GenreModel, name=genre) for genre in movie_data.pop("genres")]

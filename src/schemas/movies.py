@@ -9,7 +9,7 @@ from database.models import MovieStatusEnum
 
 String255 = Annotated[str, Field(max_length=255, description="Max length 255")]
 CountryAlpha3 = Annotated[str, Field(max_length=3, min_length=1, pattern=r"^[A-Z]{1,3}$")]
-FloatGe0 = Annotated[float, Field(ge=1)]
+FloatGe0 = Annotated[float, Field(ge=0)]
 FloatGe0Le100 = Annotated[float, Field(ge=0, le=100)]
 
 
@@ -96,6 +96,6 @@ class MovieEditSchema(BaseModel):
     date: Optional[datetime.date] = None
     score: Optional[FloatGe0Le100] = None
     overview: Optional[str] = None
-    status: Optional[CountryAlpha3] = None
+    status: Optional[MovieStatusEnum] = None
     budget: Optional[FloatGe0] = None
     revenue: Optional[FloatGe0] = None
